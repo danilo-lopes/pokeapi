@@ -1,12 +1,46 @@
-from logging import exception
 import requests
+import datetime
 import json
 import csv
+
+YEAR = datetime.date.today().year
+MONTH = datetime.date.today().month
+DATE = datetime.date.today().day
+HOUR = datetime.datetime.now().hour
+MINUTE = datetime.datetime.now().minute
 
 apiBaseUrl = "https://pokeapi.co/api/v2"
 pokemonsLimit = 10
 
-def retrievePokemons( intLimit ):
+def returnPokemons():
+    pokemons = retrievePokemonsName( pokemonsLimit )
+    for pokemon in pokemons:
+        print( retrievePokemonAttr( pokemon ) )
+
+def returnSpecificPokemon():
+    pokemon = input("Enter Pokemon Name: ")
+
+    print( retrievePokemonAttr( pokemon ) )
+
+def savePokemonsToCsv():
+    csvHeader = ["name", "type", "abilities"]
+
+    pokemonsName = retrievePokemonsName( pokemonsLimit )
+    pokemonsDetail = []
+
+    for pokemonName in pokemonsName:
+        pokemonsDetail.append( json.loads( retrievePokemonAttr( pokemonName ) ) )
+
+    pokemonsDetail.sort( key=lambda x: x["abilities"] )
+    with open(f'sample-{YEAR}-{MONTH}-{DATE}-{HOUR}-{MINUTE}.csv', 'w', encoding='UTF8', newline='') as f:
+        writer = csv.writer(f)
+
+        writer.writerow(csvHeader)
+
+        for pokemon in pokemonsDetail:
+            writer.writerow([pokemon['name'], pokemon['types'], pokemon['abilities']])
+
+def retrievePokemonsName( intLimit ):
     pokemonNames = []
 
     request = json.loads( requests.get( apiBaseUrl + f"/pokemon/?limit={intLimit}" ).text )
@@ -24,7 +58,7 @@ def retrievePokemonAttr( pokemon ):
     request = requests.get( apiBaseUrl + f"/pokemon/{pokemon}" )
 
     if request.status_code != 200:
-        return request.status_code
+        return "Pokemon Not Found or Doesnt Exists"
 
     JSON = json.loads( request.text )
 
@@ -52,25 +86,13 @@ if __name__ == "__main__":
         ans = input("What would you like to do?: ")
 
         if ans == "1":
-            pokemons = retrievePokemons( pokemonsLimit )
-            for pokemon in pokemons:
-                print( retrievePokemonAttr( pokemon ) )
+            returnPokemons()
 
         elif ans=="2":
-            pokemon = input("Enter Pokemon Name: ")
-            print( retrievePokemonAttr( pokemon ) )
+            returnSpecificPokemon()
 
         elif ans=="3":
-            file = open("sample.svc", "w+")
-            pokemons = retrievePokemons( pokemonsLimit )
-            for pokemon in pokemons:
-                pokemonAttr = json.loads( retrievePokemonAttr( pokemon ) )
-                print(pokemonAttr)
-                file.write( pokemonAttr["name"] + "," )
-                for type in pokemonAttr["types"]:
-                    file.write( type + "," )
-
-            file.close()
+            savePokemonsToCsv()
 
         elif ans=="4":
             exit(0)
