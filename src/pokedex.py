@@ -12,45 +12,67 @@ MINUTE = datetime.datetime.now().minute
 apiBaseUrl = "https://pokeapi.co/api/v2"
 pokemonsLimit = 10
 
+menu_options = {
+    1: 'See All Pokemons',
+    2: 'See Specific Pokemon',
+    3: 'Save Pokemons to csv',
+    4: 'Exit/Quit',
+}
+
 def returnPokemons():
-    pokemons = retrievePokemonsName( pokemonsLimit )
-    for pokemon in pokemons:
-        print( retrievePokemonAttr( pokemon ) )
+    pokemonsList = []
+
+    pokemonsNameList = retrieveListOfPokemonsName( pokemonsLimit )
+    for pokemon in pokemonsNameList:
+        pokemonsList.append( json.loads( retrievePokemonAttrs( pokemon ) ) )
+
+    pokemonsList.sort( key=lambda x: x["abilities"] )
+
+    for pokemon in pokemonsList:
+        print( f"Name {pokemon['name']}" )
+        print( f"Types {pokemon['types']}" )
+        print( f"Abilities {pokemon['abilities']}" )
+        print("--")
 
 def returnSpecificPokemon():
-    pokemon = input("Enter Pokemon Name: ")
+    pokemonInput = input("Enter Pokemon Name: ")
 
-    print( retrievePokemonAttr( pokemon ) )
+    pokemon = json.loads( retrievePokemonAttrs( pokemonInput ) )
+
+    print( f"Name {pokemon['name']}" )
+    print( f"Types {pokemon['types']}" )
+    print( f"Abilities {pokemon['abilities']}" )
+    print("--")
 
 def savePokemonsToCsv():
+    pokemonsNameList = retrieveListOfPokemonsName( pokemonsLimit )
+    pokemonsList = []
+
+    for pokemonName in pokemonsNameList:
+        pokemonsList.append( json.loads( retrievePokemonAttrs( pokemonName ) ) )
+
+    pokemonsList.sort( key=lambda x: x["abilities"] )
+
     csvHeader = ["name", "type", "abilities"]
-
-    pokemonsName = retrievePokemonsName( pokemonsLimit )
-    pokemonsDetail = []
-
-    for pokemonName in pokemonsName:
-        pokemonsDetail.append( json.loads( retrievePokemonAttr( pokemonName ) ) )
-
-    pokemonsDetail.sort( key=lambda x: x["abilities"] )
     with open(f'sample-{YEAR}-{MONTH}-{DATE}-{HOUR}-{MINUTE}.csv', 'w', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
 
         writer.writerow(csvHeader)
 
-        for pokemon in pokemonsDetail:
+        for pokemon in pokemonsList:
             writer.writerow([pokemon['name'], pokemon['types'], pokemon['abilities']])
 
-def retrievePokemonsName( intLimit ):
-    pokemonNames = []
+def retrieveListOfPokemonsName( intLimit ):
+    pokemons = []
 
     request = json.loads( requests.get( apiBaseUrl + f"/pokemon/?limit={intLimit}" ).text )
 
     for pokemon in request["results"]:
-        pokemonNames.append( pokemon["name"] )
+        pokemons.append( pokemon["name"] )
 
-    return pokemonNames
+    return pokemons
 
-def retrievePokemonAttr( pokemon ):
+def retrievePokemonAttrs( pokemon ):
     data = {}
     pokemonTypes = []
     pokemonAbilities = []
@@ -74,15 +96,15 @@ def retrievePokemonAttr( pokemon ):
 
     return json.dumps(data)
 
+def menu():
+    for key in menu_options.keys():
+        print (f"[{key}]", '-', menu_options[key] )
+
 if __name__ == "__main__":
     ans=True
     while ans:
-        print ("""
-        1.List Pokemons
-        2.List Specific Pokemon
-        3.Save Pokemons to csv
-        4.Exit/Quit
-        """)
+        menu()
+
         ans = input("What would you like to do?: ")
 
         if ans == "1":
