@@ -5,6 +5,14 @@ Repositorio para demonstração do teste de SRE C6Bank
 ## Requisitos
 
 ```
+cd pokeapi/
+```
+
+```
+source bin/activate
+```
+
+```
 pip install -r requirements.txt
 ```
 

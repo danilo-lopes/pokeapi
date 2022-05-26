@@ -37,11 +37,16 @@ def returnPokemons():
 def returnSpecificPokemon():
     pokemonInput = input("Enter Pokemon Name: ")
 
-    pokemon = json.loads( retrievePokemonAttrs( pokemonInput ) )
+    request = json.loads( retrievePokemonAttrs( pokemonInput ) )
+    if request["statusCode"] != 200:
+        print( request["statusCode"] )
+        print( request["result"] )
 
-    print( f"Name {pokemon['name']}" )
-    print( f"Types {pokemon['types']}" )
-    print( f"Abilities {pokemon['abilities']}" )
+        return
+
+    print( f"Name {request['name']}" )
+    print( f"Types {request['types']}" )
+    print( f"Abilities {request['abilities']}" )
     print("--")
 
 def savePokemonsToCsv():
@@ -80,8 +85,11 @@ def retrievePokemonAttrs( pokemon ):
     request = requests.get( apiBaseUrl + f"/pokemon/{pokemon}" )
 
     if request.status_code != 200:
-        return "Pokemon Not Found or Doesnt Exists"
+        data["statusCode"] = request.status_code
+        data["result"] = "Pokemon Not Found or Doesnt Exists"
+        return json.dumps( data )
 
+    data["statusCode"] = request.status_code
     JSON = json.loads( request.text )
 
     data['name'] = JSON['name']
