@@ -10,7 +10,7 @@ HOUR = datetime.datetime.now().hour
 MINUTE = datetime.datetime.now().minute
 
 apiBaseUrl = "https://pokeapi.co/api/v2"
-pokemonsLimit = 10
+pokemonsLimit = 20
 
 menu_options = {
     1: 'See All Pokemons',
@@ -58,14 +58,21 @@ def savePokemonsToCsv():
 
     pokemonsList.sort( key=lambda x: x["abilities"] )
 
-    csvHeader = ["name", "type", "abilities"]
+    csvHeader = ["name", "type", "type2", "abilitie", "abilitie2"]
     with open(f'sample-{YEAR}-{MONTH}-{DATE}-{HOUR}-{MINUTE}.csv', 'w', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
 
         writer.writerow(csvHeader)
-
         for pokemon in pokemonsList:
-            writer.writerow([pokemon['name'], pokemon['types'], pokemon['abilities']])
+            writer.writerow( 
+                [
+                    pokemon['name'],
+                    pokemon['types'][0],
+                    pokemon['types'][1] if len(pokemon['types']) > 1 else "",
+                    pokemon['abilities'][0],
+                    pokemon['abilities'][1] if len(pokemon['abilities']) > 1 else "",
+                ]
+            )
 
 def retrieveListOfPokemonsName( intLimit ):
     pokemons = []
